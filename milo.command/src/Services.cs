@@ -63,5 +63,19 @@ namespace milo.command
             return null;
         }
 
+        public static bool IsVersion(string[] args)
+        {
+            foreach (string txt in args)
+            {
+                switch (txt)
+                {
+                    case "-v":
+                        return true;
+                    case "-version":
+                        return true;
+                }
+            }
+            return false;
+        }
     }
 }

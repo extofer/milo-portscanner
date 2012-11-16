@@ -11,11 +11,7 @@ namespace milo.command
         static string Host { get; set; }
         static int FromPort { get; set; }
         static int ToPort { get; set; }
-        static int i { get; set; }
-
-        //public delegate void PortOpenEventHandler(string host, int port);
-        //public delegate void PortClosedEventHandler(string host, int port);
-       // public delegate void ErrorOccurredEventHandler(Exception ex);
+        static int Counter { get; set; }
         
         public enum PortState
         {
@@ -26,97 +22,97 @@ namespace milo.command
 
         static void Main(string[] args)
         {
-            if (args[0] == "-v" || args[0] == "-version")
+
+
+            if (Services.IsVersion(args))
             {
                 Console.WriteLine("\t" + Services.GetVersion(Services.AssemblyInfo.Title) + " version: " + Services.GetVersion(Services.AssemblyInfo.Version));
                 Console.WriteLine("\t" + Services.GetVersion(Services.AssemblyInfo.Company));
                 Console.ReadLine();
-
             }
             else
-            {
-                
+            { 
 
-            try
-            {
-                Arguments arguments = new Arguments(args);
-                Host = arguments["host"];
-
-                if (Host == null)
+                try
                 {
-                    Console.Write("Enter Host: ");
-                    Host = Console.ReadLine();
-                }
-
-                if (arguments["from"] == null && arguments["to"] == null)
-                {
-                    Console.Write("Do you want to scan the default ports? [y/n]: ");
-                    string yn = Console.ReadLine();
-
-                    if (yn == "y")
+                    Arguments arguments = new Arguments(args);
+                    Host = arguments["host"];
+                    
+                    if (Host == null)
                     {
-                        FromPort = 0;
-                        ToPort = 1023;
+                        Console.Write("Enter Host: ");
+                        Host = Console.ReadLine();
                     }
-                    else
+
+                    if (arguments["from"] == null && arguments["to"] == null)
                     {
-                        if (yn != "n")
+                        Console.Write("Do you want to scan the default ports? [y/n]: ");
+                        string yn = Console.ReadLine();
+
+                        if (yn == "y")
                         {
-                            Console.WriteLine("Command Not Found!");
+                            FromPort = 0;
+                            ToPort = 1023;
                         }
                         else
                         {
-                            Console.Write("Enter Beginning Port: ");
-                            FromPort = Convert.ToInt32(Console.ReadLine());
+                            if (yn != "n")
+                            {
+                                Console.WriteLine("Command Not Found!");
+                            }
+                            else
+                            {
+                                Console.Write("Enter Beginning Port: ");
+                                FromPort = Convert.ToInt32(Console.ReadLine());
 
-                            Console.Write("Enter Ending Port: ");
-                            ToPort = Convert.ToInt32(Console.ReadLine());
+                                Console.Write("Enter Ending Port: ");
+                                ToPort = Convert.ToInt32(Console.ReadLine());
+                            }
+
                         }
 
                     }
-
-                }
-                else
-                {
-                    FromPort = Convert.ToInt32(arguments["from"]);
-                    ToPort = Convert.ToInt32(arguments["to"]);
-                }
-
-                Console.WriteLine("Scanning .........");
-
-                i = 0;
-                do
-                {
-                    Thread t = new Thread(ScanHostPorts);
-                    t.Start(FromPort);
-                    FromPort++;
-
-                    i++;
-                    if (i == 1023)
+                    else
                     {
-                        i = 0;
-                        Thread.Sleep(5000);
+                        FromPort = Convert.ToInt32(arguments["from"]);
+                        ToPort = Convert.ToInt32(arguments["to"]);
                     }
 
+                    Console.WriteLine("Scanning .........");
 
-                } while (FromPort != ToPort);
+                    Counter = 0;
+                    do
+                    {
+                        Thread t = new Thread(ScanHostPorts);
+                        t.Start(FromPort);
+                        FromPort++;
+
+                        Counter++;
+                        if (Counter == 1024)
+                        {
+                            Counter = 0;
+                            Thread.Sleep(5000);
+                        }
+
+
+                    } while (FromPort != ToPort);
                
 
-            }
+                }
 
-            catch (Exception ex)
-            {
+                catch (Exception ex)
+                {
 
-                Console.Write(ex);
-            }
+                    Console.Write(ex);
+                }
 
-            Thread.Sleep(1000);
+                Thread.Sleep(1000);
 
-            Console.WriteLine(" ");
-            Console.WriteLine("Scan is complete. Press Enter.");
-            Console.ReadLine();
+                Console.WriteLine(" ");
+                Console.WriteLine("Scan is complete. Press Enter.");
+                Console.ReadLine();
 
-            }
+            }         
 
         }
 
