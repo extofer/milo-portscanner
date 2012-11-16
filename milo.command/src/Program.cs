@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
-
 using System.Threading;
 
 
@@ -15,15 +11,11 @@ namespace milo.command
         static string Host { get; set; }
         static int FromPort { get; set; }
         static int ToPort { get; set; }
-
-        //public event PortOpenEventHandler PortOpen;
+        
         public delegate void PortOpenEventHandler(string host, int port);
-        ///ublic event PortClosedEventHandler PortClosed;
         public delegate void PortClosedEventHandler(string host, int port);
-        //public event ErrorOccurredEventHandler ErrorOccurred;
         public delegate void ErrorOccurredEventHandler(Exception ex);
 
-        //public event Scanner.ScanCompleteEventHandler ScanComplete;
 
         public enum PortState
         {
@@ -34,10 +26,20 @@ namespace milo.command
 
         static void Main(string[] args)
         {
+            if (args[0] == "-v" || args[0] == "-version")
+            {
+                Console.WriteLine("\t" + Services.GetVersion(Services.AssemblyInfo.Title) + " version: " + Services.GetVersion(Services.AssemblyInfo.Version));
+                Console.WriteLine("\t" + Services.GetVersion(Services.AssemblyInfo.Company));
+                Console.ReadLine();
+
+            }
+            else
+            {
+                
+
             try
             {
                 Arguments arguments = new Arguments(args);
-
                 Host = arguments["host"];
 
                 if (Host == null)
@@ -80,18 +82,16 @@ namespace milo.command
                     ToPort = Convert.ToInt32(arguments["to"]);
                 }
 
-
-                //Scanner scanner = new Scanner(Host, FromPort, ToPort);
-
                 
                 Console.WriteLine("Scanning .........");
 
 
                 do
                 {
-                    Thread t = new Thread(new ParameterizedThreadStart(ScanHostPorts));
+                    Thread t = new Thread(ScanHostPorts);
                     t.Start(FromPort);
                     FromPort++;
+
                 } while (FromPort != ToPort);
                
 
@@ -102,41 +102,24 @@ namespace milo.command
                 Console.Write(ex);
             }
 
-            //Console.Write("Do you exit? [y/n]: ");
-            //string x = Console.ReadLine();
-
             Thread.Sleep(1000);
 
             Console.WriteLine(" ");
             Console.WriteLine("Scan is complete. Press Enter.");
             Console.ReadLine();
 
+            }
 
-        }
-
-
-
-
-        private static void TestThread()
-        {
-            Console.WriteLine("This is a test");
         }
 
 
         private static void ScanHostPorts(object state)
         {
-            //int state;
-            //string host;
-
+         
             PortState returnValue = default(PortState);
             returnValue = PortState.Closed;
 
             IPHostEntry hostInfo = Dns.GetHostEntry(Host);
-
-            //IPAddress hostAddress = hostInfo.AddressList[0];
-            //IPAddress hostAddress = Dns.GetHostEntry(_host).AddressList[0];
-            //IPAddress hostAddress = Dns.Resolve(_host).AddressList[0];
-
 
             foreach (IPAddress hostAddress in hostInfo.AddressList)
             {

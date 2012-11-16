@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Specialized;
+﻿using System.Collections.Specialized;
 using System.Text.RegularExpressions;
 
 namespace milo.command
@@ -10,19 +9,19 @@ namespace milo.command
     public class Arguments
     {
         // Variables
-        private StringDictionary Parameters;
+        private readonly StringDictionary _parameters;
 
         // Constructor
-        public Arguments(string[] Args)
+        public Arguments(string[] args)
         {
-            Parameters = new StringDictionary();
-            Regex Spliter = new Regex(@"^-{1,2}|^/|=|:",
+            _parameters = new StringDictionary();
+            Regex spliter = new Regex(@"^-{1,2}|^/|=|:",
                 RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
-            Regex Remover = new Regex(@"^['""]?(.*?)['""]?$",
+            Regex remover = new Regex(@"^['""]?(.*?)['""]?$",
                 RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
-            string Parameter = null;
+            string parameter = null;
             string[] Parts;
 
             // Valid parameters forms:
@@ -30,27 +29,27 @@ namespace milo.command
             // Examples: 
             // -param1 value1 --param2 /param3:"Test-:-work" 
             //   /param4=happy -param5 '--=nice=--'
-            foreach (string Txt in Args)
+            foreach (string Txt in args)
             {
                 // Look for new parameters (-,/ or --) and a
                 // possible enclosed value (=,:)
-                Parts = Spliter.Split(Txt, 3);
+                Parts = spliter.Split(Txt, 3);
 
                 switch (Parts.Length)
                 {
                     // Found a value (for the last parameter 
                     // found (space separator))
                     case 1:
-                        if (Parameter != null)
+                        if (parameter != null)
                         {
-                            if (!Parameters.ContainsKey(Parameter))
+                            if (!_parameters.ContainsKey(parameter))
                             {
                                 Parts[0] =
-                                    Remover.Replace(Parts[0], "$1");
+                                    remover.Replace(Parts[0], "$1");
 
-                                Parameters.Add(Parameter, Parts[0]);
+                                _parameters.Add(parameter, Parts[0]);
                             }
-                            Parameter = null;
+                            parameter = null;
                         }
                         // else Error: no parameter waiting for a value (skipped)
                         break;
@@ -59,42 +58,42 @@ namespace milo.command
                     case 2:
                         // The last parameter is still waiting. 
                         // With no value, set it to true.
-                        if (Parameter != null)
+                        if (parameter != null)
                         {
-                            if (!Parameters.ContainsKey(Parameter))
-                                Parameters.Add(Parameter, "true");
+                            if (!_parameters.ContainsKey(parameter))
+                                _parameters.Add(parameter, "true");
                         }
-                        Parameter = Parts[1];
+                        parameter = Parts[1];
                         break;
 
                     // Parameter with enclosed value
                     case 3:
                         // The last parameter is still waiting. 
                         // With no value, set it to true.
-                        if (Parameter != null)
+                        if (parameter != null)
                         {
-                            if (!Parameters.ContainsKey(Parameter))
-                                Parameters.Add(Parameter, "true");
+                            if (!_parameters.ContainsKey(parameter))
+                                _parameters.Add(parameter, "true");
                         }
 
-                        Parameter = Parts[1];
+                        parameter = Parts[1];
 
                         // Remove possible enclosing characters (",')
-                        if (!Parameters.ContainsKey(Parameter))
+                        if (!_parameters.ContainsKey(parameter))
                         {
-                            Parts[2] = Remover.Replace(Parts[2], "$1");
-                            Parameters.Add(Parameter, Parts[2]);
+                            Parts[2] = remover.Replace(Parts[2], "$1");
+                            _parameters.Add(parameter, Parts[2]);
                         }
 
-                        Parameter = null;
+                        parameter = null;
                         break;
                 }
             }
             // In case a parameter is still waiting
-            if (Parameter != null)
+            if (parameter != null)
             {
-                if (!Parameters.ContainsKey(Parameter))
-                    Parameters.Add(Parameter, "true");
+                if (!_parameters.ContainsKey(parameter))
+                    _parameters.Add(parameter, "true");
             }
         }
 
@@ -104,7 +103,7 @@ namespace milo.command
         {
             get
             {
-                return (Parameters[Param]);
+                return (_parameters[Param]);
             }
         }
     }
