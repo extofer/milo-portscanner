@@ -1,6 +1,8 @@
 milo-portscanner
 ================
 
+***
+
 A simple command line port scanner for Windows
 
 
@@ -18,3 +20,11 @@ If you have entered the bin to your System Path, you can call milo from your pro
 You can ignore the -from and -to parameters, and you will be asked
 ``Do you want to scan the default ports? [y/n]``
 The default ports scanned will be from ports 0 to 1023
+
+***
+The other option of running milo, is to type milo on the command prompt and press enter
+You will be asked to enter a host, then will be asked 
+``Do you want to scan the default ports? [y/n]``
+When ever you are asked this, you may opt ``n`` and will be asked to enter ports.
+
+![Environment Variables](http://dl.dropbox.com/u/5699280/img/milo.JPG)
