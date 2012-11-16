@@ -11,12 +11,12 @@ namespace milo.command
         static string Host { get; set; }
         static int FromPort { get; set; }
         static int ToPort { get; set; }
+        static int i { get; set; }
+
+        //public delegate void PortOpenEventHandler(string host, int port);
+        //public delegate void PortClosedEventHandler(string host, int port);
+       // public delegate void ErrorOccurredEventHandler(Exception ex);
         
-        public delegate void PortOpenEventHandler(string host, int port);
-        public delegate void PortClosedEventHandler(string host, int port);
-        public delegate void ErrorOccurredEventHandler(Exception ex);
-
-
         public enum PortState
         {
             Open,
@@ -82,23 +82,31 @@ namespace milo.command
                     ToPort = Convert.ToInt32(arguments["to"]);
                 }
 
-                
                 Console.WriteLine("Scanning .........");
 
-
+                i = 0;
                 do
                 {
                     Thread t = new Thread(ScanHostPorts);
                     t.Start(FromPort);
                     FromPort++;
 
+                    i++;
+                    if (i == 1023)
+                    {
+                        i = 0;
+                        Thread.Sleep(5000);
+                    }
+
+
                 } while (FromPort != ToPort);
                
 
             }
+
             catch (Exception ex)
             {
-                
+
                 Console.Write(ex);
             }
 
@@ -116,44 +124,44 @@ namespace milo.command
         private static void ScanHostPorts(object state)
         {
          
-            PortState returnValue = default(PortState);
-            returnValue = PortState.Closed;
-
+            PortState returnValue =  PortState.Closed;
             IPHostEntry hostInfo = Dns.GetHostEntry(Host);
 
             foreach (IPAddress hostAddress in hostInfo.AddressList)
             {
 
-
                 IPEndPoint ePhost = new IPEndPoint(hostAddress, Convert.ToInt32(state));
-                Socket mySocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                try
-                {
-                    mySocket.Connect(ePhost);
-                    if (mySocket.Connected)
-                    {
-                        returnValue = PortState.Open;
 
-                        Console.WriteLine("Host: " + hostAddress + "\t" + " Port: " + state + "\t" + PortState.Open + "\t" + Services.GetName(Convert.ToInt32(state)));
-
-                        mySocket.Close();
-                    }
-                    else
-                    {
-                        returnValue = PortState.Closed;
-                    }
-                }
-                catch (Exception ex)
+                using (Socket mySocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp))
                 {
-                    returnValue = PortState.Closed;
-                }
-                finally
-                {
-                    if (returnValue == PortState.Open)
-                    {
-                        Console.WriteLine("Host: " + hostAddress + "\t" + " Port: " + state + "\t" + PortState.Open + "\t" + Services.GetName(Convert.ToInt32(state)));
-                    }
+                            try
+                            {
+                                mySocket.Connect(ePhost);
+                                if (mySocket.Connected)
+                                {
+                                    returnValue = PortState.Open;
 
+                                    Console.WriteLine("Host: " + hostAddress + "\t" + " Port: " + state + "\t" + PortState.Open + "\t" + Services.GetName(Convert.ToInt32(state)));
+
+                                    mySocket.Close();
+                                }
+                                else
+                                {
+                                    returnValue = PortState.Closed;
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                returnValue = PortState.Closed;
+                            }
+                            finally
+                            {
+                                if (returnValue == PortState.Open)
+                                {
+                                    Console.WriteLine("Host: " + hostAddress + "\t" + " Port: " + state + "\t" + PortState.Open + "\t" + Services.GetName(Convert.ToInt32(state)));
+                                }
+
+                            }
                 }
 
             }
